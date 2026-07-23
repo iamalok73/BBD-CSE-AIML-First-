@@ -1,27 +1,121 @@
-import streamlit as st 
+import streamlit as st
+import pandas as pd
+import joblib
 
-print(st.header("Hello this is Streamlit Page"))
+# Load files
+model = joblib.load("model.pkl")
+scaler = joblib.load("scaler.pkl")
+encoders = joblib.load("encoder.pkl")
 
-print(st.title("This is Maxhine learning page"))
+st.title("Customer Churn Prediction")
 
-print(st.write("hello my name is Alok kumar verma i`m your Data Science Trainner."))
+# Inputs
+gender = st.selectbox("Gender", ["Female", "Male"])
+SeniorCitizen = st.selectbox("Senior Citizen", [0, 1])
+Partner = st.selectbox("Partner", ["Yes", "No"])
+Dependents = st.selectbox("Dependents", ["Yes", "No"])
+tenure = st.slider("Tenure", 0, 72)
 
+PhoneService = st.selectbox("Phone Service", ["Yes", "No"])
+MultipleLines = st.selectbox("Multiple Lines", ["Yes", "No", "No phone service"])
 
-name = st.text_input("enter your name")
-num = st.number_input("enter number: ")
+InternetService = st.selectbox(
+    "Internet Service",
+    ["DSL", "Fiber optic", "No"]
+)
 
-salary = st.slider("your salary range ",0,1000)
+OnlineSecurity = st.selectbox(
+    "Online Security",
+    ["Yes", "No", "No internet service"]
+)
 
-st.markdown("# markdown")
+OnlineBackup = st.selectbox(
+    "Online Backup",
+    ["Yes", "No", "No internet service"]
+)
 
-st.chat_message("start hare: ")
-agree = st.checkbox("I agree")
+DeviceProtection = st.selectbox(
+    "Device Protection",
+    ["Yes", "No", "No internet service"]
+)
 
-st.selectbox("Gemder",["Male","Female"])
+TechSupport = st.selectbox(
+    "Tech Support",
+    ["Yes", "No", "No internet service"]
+)
 
-st.multiselect("skill",["python","ml","dl","Agentic ai","genAi"])
+StreamingTV = st.selectbox(
+    "Streaming TV",
+    ["Yes", "No", "No internet service"]
+)
 
+StreamingMovies = st.selectbox(
+    "Streaming Movies",
+    ["Yes", "No", "No internet service"]
+)
 
-st.date_input("DOB")
+Contract = st.selectbox(
+    "Contract",
+    ["Month-to-month", "One year", "Two year"]
+)
 
-st.time_input("time")
+PaperlessBilling = st.selectbox(
+    "Paperless Billing",
+    ["Yes", "No"]
+)
+
+PaymentMethod = st.selectbox(
+    "Payment Method",
+    [
+        "Electronic check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Credit card (automatic)"
+    ]
+)
+
+MonthlyCharges = st.number_input("Monthly Charges")
+TotalCharges = st.number_input("Total Charges")
+
+# Create dataframe
+input_data = pd.DataFrame({
+    'gender': [gender],
+    'SeniorCitizen': [SeniorCitizen],
+    'Partner': [Partner],
+    'Dependents': [Dependents],
+    'tenure': [tenure],
+    'PhoneService': [PhoneService],
+    'MultipleLines': [MultipleLines],
+    'InternetService': [InternetService],
+    'OnlineSecurity': [OnlineSecurity],
+    'OnlineBackup': [OnlineBackup],
+    'DeviceProtection': [DeviceProtection],
+    'TechSupport': [TechSupport],
+    'StreamingTV': [StreamingTV],
+    'StreamingMovies': [StreamingMovies],
+    'Contract': [Contract],
+    'PaperlessBilling': [PaperlessBilling],
+    'PaymentMethod': [PaymentMethod],
+    'MonthlyCharges': [MonthlyCharges],
+    'TotalCharges': [TotalCharges]
+})
+
+# Encode categorical columns
+for column in input_data.columns:
+    if column in encoders:
+        le = encoders[column]
+        input_data[column] = le.transform(input_data[column])
+
+# Scale
+input_scaled = scaler.transform(input_data)
+
+# Predict
+if st.button("Predict"):
+
+    prediction = model.predict(input_scaled)
+
+    if prediction[0] == 1:
+        st.error("Customer Will Churn")
+    else:
+        st.success("Customer Will Not Churn")
+        
